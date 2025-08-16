@@ -1,0 +1,53 @@
+[
+  {
+    "acme": {
+      "Id" : "id",
+      "DestinationId" : "destination_id",
+      "Name" : "name",
+      "Latitude": "lat",
+      "Longitude": "lng",
+      "Address" : "address",
+      "City": "city",
+      "Country": "country",
+      "PostalCode": "postalCode",
+      "Description": "description",
+      "Facilities": "amenities"
+    }
+  },
+  {
+    "patagonia": {
+      "id": "id",
+      "destination": "destination_id",
+      "name": "name",
+      "lat": "lat",
+      "lng": "lng",
+      "address": "address",
+      "info": "description",
+      "amenities": "amenities",
+      "images": "images",
+      "rooms": "rooms",
+      "url": "link",
+      "description": "description"
+    }
+  },
+  {
+    "paperflies": {
+      "hotel_id": "id",
+      "destination_id": "destination_id",
+      "hotel_name": "name",
+      "location": "location",
+      "address": "address",
+      "country": "country",
+      "details": "description",
+      "amenities": "amenities",
+      "general": "general",
+      "room": "room",
+      "images": "images",
+      "rooms": "rooms",
+      "link": "link",
+      "caption": "description",
+      "site": "site",
+      "booking_conditions": "booking_conditions"
+    }
+  }
+]

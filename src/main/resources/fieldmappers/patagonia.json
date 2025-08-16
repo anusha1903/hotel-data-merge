@@ -1,0 +1,16 @@
+{
+  "patagonia": {
+    "id": "id",
+    "destination": "destination_id",
+    "name": "name",
+    "lat": "lat",
+    "lng": "lng",
+    "address": "address",
+    "info": "description",
+    "amenities": "amenities",
+    "images": "images",
+    "rooms": "rooms",
+    "url": "link",
+    "description": "description"
+  }
+}

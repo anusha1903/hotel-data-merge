@@ -1,0 +1,20 @@
+{
+  "paperflies": {
+    "hotel_id": "id",
+    "destination_id": "destination_id",
+    "hotel_name": "name",
+    "location": "location",
+    "address": "address",
+    "country": "country",
+    "details": "description",
+    "amenities": "amenities",
+    "general": "general",
+    "room": "room",
+    "images": "images",
+    "rooms": "rooms",
+    "link": "link",
+    "caption": "description",
+    "site": "site",
+    "booking_conditions": "booking_conditions"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "acme": {
+    "Id" : "id",
+    "DestinationId" : "destination_id",
+    "Name" : "name",
+    "Latitude": "lat",
+    "Longitude": "lng",
+    "Address" : "address",
+    "City": "city",
+    "Country": "country",
+    "PostalCode": "postalCode",
+    "Description": "description",
+    "Facilities": "amenities"
+  }
+}
