@@ -6,7 +6,7 @@ import lombok.Data;
 public class Location{
 	private String country;
 	private String address;
-	private Object lng;
+	private Double lng;
 	private String city;
-	private Object lat;
+	private Double lat;
 }
