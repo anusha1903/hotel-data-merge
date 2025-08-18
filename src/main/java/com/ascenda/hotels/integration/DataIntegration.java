@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 public class DataIntegration {
@@ -32,31 +33,46 @@ public class DataIntegration {
 
     public void processUrls(){
 
+        System.out.println("read the urls");
         List<String> urls = urlConfig.getUrlList();
 
+        System.out.println("read the data from urls");
         Map<String, JsonNode> dataMap = getHotelData(urls);
 
         // take each upstream data and create a map with hotelId as the key
         //assuminh hotelId would be unique
 
-        Map<String,Map<String,JsonNode>>  hotelDataMap = getMergedHotelData(dataMap);
+        System.out.println("get response for urls");
+
+      Response  hotelDataResponse = getMergedHotelData(dataMap);
 
 
 
     }
 
-    private Map<String,Map<String,JsonNode>> getMergedHotelData(Map<String, JsonNode> dataMap){
+    private Response getMergedHotelData(Map<String, JsonNode> dataMap){
+        System.out.println("rebuild the hotel data");
         Map<String,Map<String,JsonNode>> hotelData =  buildHotelData(dataMap);
+        System.out.println("process the data");
         // responseitem -> holds merged of one hotel data from all the upstreams
         // list<responseitem> -> response -> holds all the merged hotels data
-        ResponseItem responseItem = new ResponseItem();
+        Response response = new Response();
+        List<ResponseItem> responseItems = new ArrayList<>();
         hotelData.forEach((key, eachHotelData) -> {
             System.out.println("hotel key: " + key);
             Map<String,JsonNode> value = hotelData.get(key);
-            ResponseItem responseItem1 = getProcessedHotelData(value);
-            value.forEach((key1, value1) -> System.out.println(key1 + ": " + value1.toPrettyString()));
+            ResponseItem responseItem = getProcessedHotelData(value);
+            ObjectMapper mapper = new ObjectMapper();
+
+            // Convert the POJO to a JsonNode
+            JsonNode jsonNode = mapper.valueToTree(responseItem);
+
+            // Print the JsonNode (which will implicitly call its toString() method)
+            System.out.println(jsonNode);
+            responseItems.add(responseItem);
         });
-        return hotelData;
+        response.setResponse(responseItems);
+        return response;
     }
 
     /**
@@ -69,22 +85,59 @@ public class DataIntegration {
     private ResponseItem getProcessedHotelData(Map<String,JsonNode> eachHotelDataFromAllSources) {
         ResponseItem responseItem = new ResponseItem();
 
-        eachHotelDataFromAllSources.forEach((key, value) -> {
-            //process for acme
-            JsonNode acmeNode = value.get("acme");
-            ResponseItem acmeResponseItem = processAcmeData(acmeNode, responseItem);
+        if (eachHotelDataFromAllSources.containsKey("acme")) {
+            System.out.println("reading acme");
+            try {
+                JsonNode acmeNode = eachHotelDataFromAllSources.get("acme");
+                if(acmeNode != null){
+                    processAcmeData(acmeNode, responseItem);
+                }
+            } catch (Exception e) {
+                System.out.println("exception in acme"+e.getMessage());
+                throw new RuntimeException(e);
+            }
+        }
 
-            //process for patagonia
+        if (eachHotelDataFromAllSources.containsKey("patagonia")) {
+            try {
+                System.out.println("reading patagonia");
+                JsonNode patagoniaNode = eachHotelDataFromAllSources.get("patagonia");
+                if(patagoniaNode != null) {
+                    processPatagoniaData(patagoniaNode, responseItem);
+                }
 
-            //process for paperflies
-        });
+            } catch (Exception e) {
+                System.out.println("exception in patagonia"+e.getMessage());
+                throw new RuntimeException(e);
+            }
+        }
+
+        if (eachHotelDataFromAllSources.containsKey("paperflies")) {
+            try {
+                System.out.println("reading paperflies");
+                JsonNode paperfliesNode = eachHotelDataFromAllSources.get("paperflies");
+                if(paperfliesNode != null) {
+                    processPaperfliesData(paperfliesNode, responseItem);
+                }
+
+            } catch (Exception e) {
+                System.out.println("exception in paperflies"+e.getMessage());
+                throw new RuntimeException(e);
+            }
+        }
+
+        //System.out.println("responseItem for hotelId : " + responseItem);
 
         return  responseItem;
     }
 
     private ResponseItem processAcmeData(JsonNode acmeNode, ResponseItem responseItem){
-        responseItem.setId(acmeNode.get("id").asText().trim());
-        responseItem.setDestinationId(acmeNode.get("DestinationId").asInt());
+        responseItem.setId(acmeNode.get("Id").asText().trim());
+        int destId = acmeNode.get("DestinationId").asInt();
+        if(destId > 0) {
+            responseItem.setDestinationId(destId);
+        }
+
         String name = acmeNode.get("Name").asText();
         if(!DataHelper.isNullOrEmpty(name)) {
             if(responseItem.getName() == null) {
@@ -95,24 +148,31 @@ public class DataIntegration {
             }
         }
         Location location =  new Location();
-        location.setLat(acmeNode.get("Latitude").asDouble());
-        location.setLng(acmeNode.get("Longitude").asDouble());
+        double latitude = acmeNode.get("Latitude").asDouble();
+        double longitude = acmeNode.get("Longitude").asDouble();
+        if(latitude > 0d && longitude > 0d) {
+            location.setLat(latitude);
+            location.setLng(longitude);
+        }
+
         String address = acmeNode.get("Address").asText();
         if(!DataHelper.isNullOrEmpty(address)) {
             address = address.trim();
             String postalCode = acmeNode.get("PostalCode").asText();
             if(!DataHelper.isNullOrEmpty(postalCode)) {
-                address = address.concat(", ").concat(postalCode);
+                if(!address.contains(postalCode)) {
+                    address = address.concat(", ").concat(postalCode);
+                }
             }
             location.setAddress(address);
         }
         String city = acmeNode.get("City").asText();
         if(!DataHelper.isNullOrEmpty(city)) {
-            location.setCity(city);
+            location.setCity(city.trim());
         }
         String country = acmeNode.get("Country").asText();
         if(!DataHelper.isNullOrEmpty(country)) {
-            location.setCity(country);
+            location.setCountry(country);
         }
         responseItem.setLocation(location);
         String description = acmeNode.get("Description").asText();
@@ -124,7 +184,7 @@ public class DataIntegration {
         List<String> genAmenities = new ArrayList<>();
         if(amenitiesNode != null && amenitiesNode.isArray()) {
             for(JsonNode genAmenityNode : amenitiesNode) {
-                genAmenities.add(genAmenityNode.asText().trim());
+                genAmenities.add(genAmenityNode.asText().trim().toLowerCase());
             }
         }
         amenities.setGeneral(genAmenities);
@@ -133,6 +193,13 @@ public class DataIntegration {
     }
 
     private ResponseItem processPatagoniaData(JsonNode petagoniaNode, ResponseItem responseItem) throws JsonProcessingException {
+        if(DataHelper.isNullOrEmpty(responseItem.getId())) {
+            responseItem.setId(petagoniaNode.get("id").asText().trim());
+        }
+        int destId = petagoniaNode.get("destination").asInt();
+        if(destId > 0 && responseItem.getDestinationId() == null) {
+            responseItem.setDestinationId(destId);
+        }
         String name = petagoniaNode.get("name").asText();
         if(!DataHelper.isNullOrEmpty(name)) {
             if(responseItem.getName() == null) {
@@ -142,10 +209,19 @@ public class DataIntegration {
                 responseItem.setName(MergingStrategies.getStringWithMaxLength(existingName, name));
             }
         }
-        Location location =  responseItem.getLocation();
-        if(location.getLng() == null  || location.getLat() == null) {
-            location.setLat(petagoniaNode.get("lat").asDouble());
-            location.setLng(petagoniaNode.get("lng").asDouble());
+        Location location = null;
+        if(responseItem.getLocation() != null){
+            location =  responseItem.getLocation();
+        } else {
+            location = new Location();
+        }
+        if(location.getLng() == null  || location.getLat() == null || location.getLng() == 0d || location.getLat() == 0d) {
+            double latitude = petagoniaNode.get("lat").asDouble();
+            double longitude = petagoniaNode.get("lng").asDouble();
+            if(latitude > 0d && longitude > 0d) {
+                location.setLat(latitude);
+                location.setLng(longitude);
+            }
         }
         String address = petagoniaNode.get("address").asText();
         if(!DataHelper.isNullOrEmpty(address)) {
@@ -167,32 +243,50 @@ public class DataIntegration {
         }
         Amenities amenities = new Amenities();
         JsonNode amenitiesNode = petagoniaNode.get("amenities");
-        List<String> genAmenities = responseItem.getAmenities().getGeneral();
+        List<String> genAmenities = null;
+        if(responseItem.getAmenities() != null) {
+            genAmenities = responseItem.getAmenities().getGeneral();
+        } else {
+            genAmenities = new ArrayList<>();
+        }
+
         if(amenitiesNode != null && amenitiesNode.isArray()) {
             for(JsonNode genAmenityNode : amenitiesNode) {
-                genAmenities.add(genAmenityNode.asText().trim());
+                genAmenities.add(genAmenityNode.asText().trim().toLowerCase());
             }
         }
         amenities.setGeneral(genAmenities);
         responseItem.setAmenities(amenities);
+
         ObjectMapper mapper = new ObjectMapper();
         JsonNode imagesNode = petagoniaNode.get("images");
-        Images images = mapper.treeToValue(imagesNode, Images.class);
-        responseItem.setImages(images);
-
-        System.out.println("Rooms:");
-        for (RoomsItem item : images.getRooms()) {
-            System.out.println(item.getDescription() + " → " + item.getLink());
+        if(imagesNode != null) {
+            Images images = mapper.treeToValue(imagesNode, Images.class);
+            responseItem.setImages(images);
         }
 
-        System.out.println("\nAmenities:");
-        for (AmenitiesItem item : images.getAmenities()) {
-            System.out.println(item.getDescription() + " → " + item.getLink());
-        }
+
+//        System.out.println("Rooms:");
+//        for (RoomsItem item : images.getRooms()) {
+//            System.out.println(item.getDescription() + " → " + item.getLink());
+//        }
+
+//        System.out.println("\nAmenities:");
+//        for (AmenitiesItem item : images.getAmenities()) {
+//            System.out.println(item.getDescription() + " → " + item.getLink());
+//        }
         return responseItem;
     }
 
     private ResponseItem processPaperfliesData(JsonNode paperfliesNode, ResponseItem responseItem) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        if(DataHelper.isNullOrEmpty(responseItem.getId())) {
+            responseItem.setId(paperfliesNode.get("hotel_id").asText().trim());
+        }
+        int destId = paperfliesNode.get("destination_id").asInt();
+        if(destId > 0 && responseItem.getDestinationId() == null) {
+            responseItem.setDestinationId(destId);
+        }
         String name = paperfliesNode.get("hotel_name").asText();
         if(!DataHelper.isNullOrEmpty(name)) {
             if(responseItem.getName() == null) {
@@ -202,8 +296,15 @@ public class DataIntegration {
                 responseItem.setName(MergingStrategies.getStringWithMaxLength(existingName, name));
             }
         }
-        Location location =  responseItem.getLocation();
-        String address = paperfliesNode.get("address").asText();
+        Location location =  null;
+        if(responseItem.getLocation() != null) {
+            location =  responseItem.getLocation();
+        } else {
+            location = new Location();
+        }
+        JsonNode locationNode = paperfliesNode.get("location");
+        Location currentLocation = mapper.treeToValue(locationNode, Location.class);
+        String address = currentLocation.getAddress();
         if(!DataHelper.isNullOrEmpty(address)) {
             address = address.trim();
             String existingAddress = responseItem.getLocation().getAddress();
@@ -212,10 +313,12 @@ public class DataIntegration {
             }
             location.setAddress(address);
         }
-        String country = paperfliesNode.get("country").asText();
+        String country = currentLocation.getCountry();
         if(!DataHelper.isNullOrEmpty(country)) {
             if(location.getCountry() == null) {
-                location.setCountry(country);
+                location.setCountry(country.trim());
+            } else {
+                location.setCountry(MergingStrategies.getStringWithMaxLength(location.getCountry(), country));
             }
         }
         responseItem.setLocation(location);
@@ -227,25 +330,73 @@ public class DataIntegration {
             }
             responseItem.setDescription(description);
         }
-        Amenities amenities = new Amenities();
+
         JsonNode amenitiesNode = paperfliesNode.get("amenities");
-        // TODO --
-
+        List<String> genAmenities = null;
+        if(responseItem.getAmenities() != null) {
+            genAmenities = responseItem.getAmenities().getGeneral();
+        } else {
+            genAmenities = new ArrayList<>();
+        }
+        Amenities amenities = mapper.treeToValue(amenitiesNode, Amenities.class);
+        genAmenities.addAll(amenities.getGeneral());
+        Map<String, List<String>> mergedAmenities = MergingStrategies.cleanAmenities(genAmenities, amenities.getRoom());
+        amenities.setGeneral(mergedAmenities.get("general"));
+        amenities.setRoom(mergedAmenities.get("room"));
         responseItem.setAmenities(amenities);
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode imagesNode = paperfliesNode.get("Images");
+
+        // check and get existing image object
+        Images currentImage = null;
+        if(responseItem.getImages() != null) {
+            currentImage = responseItem.getImages();
+        } else {
+            currentImage = new Images();
+        }
+
+        // get the image object from source
+        JsonNode imagesNode = paperfliesNode.get("images");
         Images images = mapper.treeToValue(imagesNode, Images.class);
-        responseItem.setImages(images);
+        if(images!= null && images.getRooms() != null) { //chk if src img obj is not null
+            List<RoomsItem> currentRooms = images.getRooms();
+            if(responseItem.getImages() != null && responseItem.getImages().getRooms() != null) {
+                // get the existing rooms in the current response Img obj
+                List<RoomsItem> existingRooms = responseItem.getImages().getRooms();
+                //get rooms from current image node
 
-        System.out.println("Rooms:");
-        for (RoomsItem item : images.getRooms()) {
-            System.out.println(item.getDescription() + " → " + item.getLink());
+                List<RoomsItem> unMatched = existingRooms.stream()
+                        .filter(r1 -> currentRooms.stream()
+                                .noneMatch(r2 -> r1.getLink().equals(r2.getLink())))
+                        .collect(Collectors.toList());
+                currentRooms.addAll(unMatched);
+//                System.out.println("Rooms:");
+//                for (RoomsItem item : images.getRooms()) {
+//                    System.out.println(item.getDescription() + " → " + item.getLink());
+//                }
+            }
+            currentImage.setRooms(currentRooms);
         }
 
-        System.out.println("\nAmenities:");
-        for (AmenitiesItem item : images.getAmenities()) {
-            System.out.println(item.getDescription() + " → " + item.getLink());
+
+        if(images!= null && images.getSite() != null) {
+            List<SiteItem> currentSite = images.getSite();
+            if(responseItem.getImages() != null && responseItem.getImages().getSite() != null) {
+                List<SiteItem> existingSite = responseItem.getImages().getSite();
+                List<SiteItem> unMatchedSite = existingSite.stream()
+                        .filter(r1 -> currentSite.stream()
+                                .noneMatch(r2 -> r1.getLink().equals(r2.getLink())))
+                        .toList();
+
+                currentSite.addAll(unMatchedSite);
+//                System.out.println("\nAmenities:");
+//                for (AmenitiesItem item : images.getAmenities()) {
+//                    System.out.println(item.getDescription() + " → " + item.getLink());
+//                }
+            }
+            currentImage.setSite(currentSite);
         }
+        responseItem.setImages(currentImage);
+
+
         JsonNode booksNode = paperfliesNode.get("booking_conditions");
         List<String> bookCond = new ArrayList<>();
         if(booksNode != null && booksNode.isArray()) {
@@ -345,10 +496,10 @@ public class DataIntegration {
         // Wait for all to complete (blocking)
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-        dataMap.forEach((key, value) -> {
-            System.out.println("Key: " + key);
-            System.out.println("Value: " + value.toPrettyString());
-        });
+//        dataMap.forEach((key, value) -> {
+//            System.out.println("Key: " + key);
+//            System.out.println("Value: " + value.toPrettyString());
+//        });
         return dataMap;
     }
 

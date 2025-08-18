@@ -4,6 +4,7 @@ import java.util.List;
 import lombok.Data;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 @Data
 public class ResponseItem{
@@ -31,4 +32,18 @@ public class ResponseItem{
     public int hashCode() {
         return new HashCodeBuilder(17, 37).append(destinationId).append(id).toHashCode();
     }
+
+//    @Override
+//    public String toString() {
+//        return new ToStringBuilder(this)
+//                .append("amenities", amenities)
+//                .append("images", images)
+//                .append("destinationId", destinationId)
+//                .append("name", name)
+//                .append("description", description)
+//                .append("location", location)
+//                .append("id", id)
+//                .append("bookingConditions", bookingConditions)
+//                .toString();
+//    }
 }
