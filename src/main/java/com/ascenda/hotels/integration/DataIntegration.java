@@ -31,7 +31,7 @@ public class DataIntegration {
     //Reading data from upstreams/sources
     // Here the aim is not to create the pojo from json. So jsonnode is used instead of jsonobject
 
-    public void processUrls(){
+    public Response processUrls(){
 
         System.out.println("read the urls");
         List<String> urls = urlConfig.getUrlList();
@@ -46,6 +46,7 @@ public class DataIntegration {
 
       Response  hotelDataResponse = getMergedHotelData(dataMap);
 
+      return hotelDataResponse;
 
 
     }
@@ -64,11 +65,11 @@ public class DataIntegration {
             ResponseItem responseItem = getProcessedHotelData(value);
             ObjectMapper mapper = new ObjectMapper();
 
-            // Convert the POJO to a JsonNode
-            JsonNode jsonNode = mapper.valueToTree(responseItem);
-
-            // Print the JsonNode (which will implicitly call its toString() method)
-            System.out.println(jsonNode);
+//            // Convert the POJO to a JsonNode
+//            JsonNode jsonNode = mapper.valueToTree(responseItem);
+//
+//            // Print the JsonNode (which will implicitly call its toString() method)
+//            System.out.println(jsonNode);
             responseItems.add(responseItem);
         });
         response.setResponse(responseItems);
