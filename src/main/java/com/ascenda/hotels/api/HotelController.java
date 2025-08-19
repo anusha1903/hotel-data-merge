@@ -1,5 +1,7 @@
 package com.ascenda.hotels.api;
 
+import com.ascenda.hotels.exceptionHandler.DataIngestionException;
+import com.ascenda.hotels.exceptionHandler.HotelNotFoundException;
 import com.ascenda.hotels.model.request.HotelRequest;
 import com.ascenda.hotels.repository.HotelRepository;
 import com.ascenda.hotels.repository.entity.Hotel;
@@ -30,7 +32,11 @@ public class HotelController {
     @GetMapping(("/getAllHotels"))
     @Operation(summary = "Get all the hotels", description = "Fetch all the hotels")
     public ResponseEntity<List<Hotel>> getAllHotels() {
-        return ResponseEntity.ok(hotelService.getAllHotels());
+        List<Hotel> hotels = hotelService.getAllHotels();
+        if(hotels.isEmpty()){
+            throw new HotelNotFoundException("Hotel not found");
+        }
+        return ResponseEntity.ok(hotels);
     }
 
     @PostMapping("/getHotelDetails")
@@ -38,6 +44,10 @@ public class HotelController {
     public ResponseEntity<List<Hotel>> getHotelsForReq(@RequestBody HotelRequest request) {
 
         List<Hotel> results = new ArrayList<>();
+
+        if((request.getId() == null || request.getId().isEmpty()) && (request.getDestinationId() == null)){
+            throw new HotelNotFoundException("Missing required parameters");
+        }
 
         // Query by ID if provided
         if (request.getId() != null && !request.getId().isEmpty()) {
@@ -48,7 +58,7 @@ public class HotelController {
         }
 
         if (results.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            throw  new HotelNotFoundException("Requested Hotel/Hotels for requested destinationId are not found");
         }
 
         return ResponseEntity.ok(results);
@@ -57,11 +67,13 @@ public class HotelController {
     // GET all hotels
     @GetMapping(("/ingestHotelData"))
     @Operation(summary = "Read and ingest all the hotel data", description = "stores all hotel data")
-    public ResponseEntity<String> saveAllHotels() {
+    public ResponseEntity<String> saveAllHotels() throws Exception {
         try {
             return ResponseEntity.ok(hotelService.readAndStoreDataFromSrc());
+        } catch (DataIngestionException e) {
+            throw  new DataIngestionException("Data Ingestion has failed "+e.getMessage());
         } catch (Exception e) {
-            return  ResponseEntity.notFound().build();
+            throw  new Exception("Data Ingestion has failed "+e.getMessage());
         }
 
     }
