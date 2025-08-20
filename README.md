@@ -17,7 +17,7 @@ To run this app locally, user should have below
 <br/>
     a. trigger ingestHotelData API to load the data into dB. This would parse, merge the data and store it into dB
    <br/>
-    b. trigger getHotelDetails to get data either requesting by hotel_id or by destination_id
+    b. trigger getHotelDetails to get data either requesting by id (hotel_id) or by destination_id
 
 ### Hotel Schema
 ````
