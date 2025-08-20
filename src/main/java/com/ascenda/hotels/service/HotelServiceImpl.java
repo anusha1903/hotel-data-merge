@@ -1,5 +1,6 @@
 package com.ascenda.hotels.service;
 
+import com.ascenda.hotels.exceptionHandler.DataIngestionException;
 import com.ascenda.hotels.integration.DataIntegration;
 import com.ascenda.hotels.model.response.Images;
 import com.ascenda.hotels.model.response.Response;
@@ -59,7 +60,7 @@ public class HotelServiceImpl implements HotelService {
             String result = saveHotelData(response);
             logger.info("Data ingestion completed successfully");
             return result;
-        } catch (Exception e) {
+        } catch (DataIngestionException e) {
             logger.error("Failed to read and store data from sources", e);
             throw e;
         }
@@ -82,9 +83,9 @@ public class HotelServiceImpl implements HotelService {
                 logger.info("Successfully saved {} hotels", hotelEntities.size());
                 
                 return "Data saved successfully. Total hotels: " + hotelEntities.size();
-            } catch (Exception ex) {
+            } catch (DataIngestionException ex) {
                 logger.error("Failed to save hotel data", ex);
-                throw new RuntimeException("Failed to save hotel data", ex);
+                throw new DataIngestionException("Failed to save hotel data "+ex.getMessage());
             }
         }
         return "No data to save";
