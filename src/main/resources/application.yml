@@ -3,3 +3,12 @@ app:
     - https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/acme
     - https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/patagonia
     - https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/paperflies
+
+spring:
+  redis:
+    host: localhost
+    port: 6379
+  cache:
+    type: redis
+  security:
+    require-ssl: true
