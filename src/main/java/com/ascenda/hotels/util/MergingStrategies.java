@@ -1,4 +1,4 @@
-package com.ascenda.hotels.Util;
+package com.ascenda.hotels.util;
 
 import java.util.*;
 import java.util.stream.Collectors;

@@ -1,24 +1,30 @@
 package com.ascenda.hotels;
 
 import com.ascenda.hotels.integration.DataIntegration;
-import com.ascenda.hotels.repository.HotelRepository;
-import com.ascenda.hotels.service.HotelService;
-import org.springframework.boot.CommandLineRunner;
+import com.ascenda.hotels.service.HotelServiceImpl;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.cache.annotation.EnableCaching;
 
+/**
+ * //implements CommandLineRunner -> to run locally wihtout triggering the API
+ * //    @Override
+ * //    public void run(String... args) {
+ * //        hotelService.readAndStoreDataFromSrc();
+ * //
+ * //        //dataIntegration.processUrls(); // Call your service method here
+ * //    }
+ */
 @SpringBootApplication
-public class HotelsApplication //implements CommandLineRunner
+@EnableCaching
+public class HotelsApplication
 {
 
     public final DataIntegration dataIntegration;
 
-    public final HotelService hotelService;
+    public final HotelServiceImpl hotelService;
 
-    public HotelsApplication(DataIntegration dataIntegration, HotelService hotelService) {
+    public HotelsApplication(DataIntegration dataIntegration, HotelServiceImpl hotelService) {
         this.dataIntegration = dataIntegration;
         this.hotelService = hotelService;
     }

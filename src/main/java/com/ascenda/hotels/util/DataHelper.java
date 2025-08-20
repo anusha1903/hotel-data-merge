@@ -1,7 +1,11 @@
-package com.ascenda.hotels.Util;
+package com.ascenda.hotels.util;
 
+import com.ascenda.hotels.constants.Constants;
+import com.ascenda.hotels.exceptionHandler.HotelNotFoundException;
+import com.ascenda.hotels.model.request.HotelRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class DataHelper {
@@ -36,6 +40,21 @@ public class DataHelper {
                 return false;
             }
         }
+    }
+
+    public static boolean validateUserRequest(HotelRequest hotelRequest){
+        if (hotelRequest == null) {
+            throw new IllegalArgumentException("Hotel request cannot be null");
+        }
+        
+        boolean hasValidId = hotelRequest.getId() != null && !hotelRequest.getId().trim().isEmpty();
+        boolean hasValidDestinationId = hotelRequest.getDestinationId() != null && hotelRequest.getDestinationId() > 0;
+        
+        if (!hasValidId && !hasValidDestinationId) {
+            throw new IllegalArgumentException("Either hotel ID or destination ID must be provided and valid");
+        }
+        
+        return hasValidId || hasValidDestinationId;
     }
 
 }

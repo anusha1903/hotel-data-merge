@@ -1,13 +1,18 @@
 package com.ascenda.hotels.exceptionHandler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
      * Hotel Not found exception
@@ -46,10 +51,20 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<HotelError> handleInvalidJson(HttpMessageNotReadableException ex) {
+        HotelError error = new HotelError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Avoid requesting for blank attribute. Malformed JSON or invalid field types: %s".formatted(ex.getMessage())
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     // Handle Generic Exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<HotelError> handleAll(Exception ex, WebRequest request) {
-        System.out.println("Errr: " + ex);
+        logger.error("Unhandled exception occurred", ex);
         HotelError error = new HotelError(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
