@@ -42,6 +42,11 @@ public class DataHelper {
         }
     }
 
+    /**
+     * validate user request body
+     * @param hotelRequest
+     * @return
+     */
     public static boolean validateUserRequest(HotelRequest hotelRequest){
         if (hotelRequest == null) {
             throw new IllegalArgumentException("Hotel request cannot be null");

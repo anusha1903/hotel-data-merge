@@ -26,6 +26,11 @@ public class DataFetcher {
     }
 
 
+    /**
+     * 1. Reads the data from various sources asynchronously
+     * 2. Generates map of source and hotelDataNode
+     * @return
+     */
     public Map<String, JsonNode> getHotelDataFromsource() {
         logger.info("Starting URL processing - reading configured URLs");
         List<String> urls = urlConfig.getUrlList();
@@ -54,9 +59,10 @@ public class DataFetcher {
         // Wait for all to complete (blocking)
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
+//      To test
 //        dataMap.forEach((key, value) -> {
-//            System.out.println("Key: " + key);
-//            System.out.println("Value: " + value.toPrettyString());
+//            logger.info("Key: " + key);
+//            logger.info("Value: " + value.toPrettyString());
 //        });
         return dataMap;
     }

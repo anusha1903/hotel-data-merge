@@ -19,6 +19,15 @@ public class MergingStrategies {
         return str1.length() > str2.length() ? str1 : str2;
     }
 
+    /**
+     * Clean and merges the amenities by considering various scenarios
+     * 1. Removed when there are duplicates
+     * 2. Repeated data is removed when the data is fetched in different formats like pool, outdoor pool.
+     * 3. Normalized when data after comparing it while removing white spaces to remove  repeated data
+     * @param genAmenities
+     * @param roomAmenities
+     * @return
+     */
     public static Map<String,List<String>> cleanAmenities(List<String> genAmenities, List<String> roomAmenities) {
         List<String> cleanGeneralAmenities = new ArrayList<>();
         List<String> cleanRoomAmenities = new ArrayList<>();
@@ -68,6 +77,11 @@ public class MergingStrategies {
         return cleanAmenities;
     }
 
+    /**
+     * Remove whitespaces and compare the words. Fetch the word with maximum length out of them
+     * @param listToNormalize
+     * @return
+     */
     public static List<String> getNormalizedList(List<String> listToNormalize){
         return listToNormalize.stream()
                 .filter( firstStr -> listToNormalize.stream()
@@ -75,10 +89,24 @@ public class MergingStrategies {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Validating if the given facility belongs to room amenity or not
+     * @param facility
+     * @return
+     */
     public static boolean isRoomAmenity(String facility) {
         return roomHotelAmenities.contains(facility);
     }
 
+
+    /**
+     * To consider proper description, calculayed the score and get the one which has maximum score
+     * score is calculated based on pre-defined weightage words
+     * Even considered the scenarios where sentence has activities by weightage word is activity
+     * @param desc1
+     * @param desc2
+     * @return
+     */
     public static String getDescriptionAfterMerge(String desc1, String desc2) {
         int score1 = 0, score2 = 0;
         score1 = calculateScoreForSentence(desc1);

@@ -20,6 +20,14 @@ import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * This controller has various APIs that allow consumers to consume various hotel data attributes
+ * This also allow user to load the data to store into dB
+ *
+ * @author anusha
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/api/hotels")
 @Tag(name = "Hotel API", description = "Hotel Data APIs")

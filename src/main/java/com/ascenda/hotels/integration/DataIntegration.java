@@ -20,6 +20,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+/**
+ * This is triggered when user is trying to load hotel data to dB
+ * This class is mainly responsible for
+ * 1) Reading data from upstream
+ * 2) Grouping the data based on hotel_id
+ * 3) Cleaning, Parsing and Merging the data using various strategies'
+ * 4) Once the data is merged based on hotel_id, the response is returned to service layer
+ */
 @Service
 public class DataIntegration {
 
@@ -37,7 +45,8 @@ public class DataIntegration {
     // Here the aim is not to create the pojo from json. So jsonnode is used instead of jsonobject
 
     /**
-     *
+     * getHotelDataFromsource - Reads the data from source and return it in a map key - data source(acm/..), value - hotels
+     * getMergedHotelData -> would give merged data for each hotelId
      * @return
      */
     public Response processUrls(){

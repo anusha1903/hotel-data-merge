@@ -25,6 +25,13 @@ public class DataParser {
         this.dataMerger = dataMerger;
     }
 
+    /**
+     * As we have to merge the hotel data based on the hotel_id, rebuild the map so that key - hotel-id, value - hotel object from each source
+     * This enables us to read, clean, parse, and merge data for each hotel_id
+     *
+     * @param dataMap
+     * @return
+     */
     public Response getMergedHotelData(Map<String, JsonNode> dataMap){
         logger.info("Rebuilding hotel data structure");
         Map<String,Map<String,JsonNode>> hotelData =  buildHotelData(dataMap);
@@ -68,7 +75,7 @@ public class DataParser {
      * structure:
      * say for "acme" hotel data: hotelId - abc, destinatonId - 123
      * hotelKey : abc-123
-     * hoteldqtaMap -> <hotelkey,<key,hotelobjecy>>
+     * hoteldqtaMap -> <hotelkey,<key,hotelobject>>
      *     i.e., <"abc-123",<"acme", {acme_hotel_object_jsonNode}>>
      * Each upstream like acme has different json structure. In this case, for each hotel_id of a specific destination_id,
      * as we have to traverse through all upstreams and merge the data, we are storing with upstream name as key against the

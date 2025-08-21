@@ -13,6 +13,6 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("Hotel API")
                         .version("1.0")
-                        .description("API documentation for Hotels project"));
+                        .description("API documentation for Ascenda Hotels Application"));
     }
 }

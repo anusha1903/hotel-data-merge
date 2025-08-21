@@ -66,6 +66,7 @@ public class HotelServiceImpl implements HotelService {
         }
     }
 
+    // save the data to dB
     @Transactional
     @CachePut(value = "hotels", key = "#hotel.id")
     @CacheEvict(value = "hotelList", allEntries = true)

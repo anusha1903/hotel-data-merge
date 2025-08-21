@@ -13,7 +13,7 @@ To run this app locally, user should have below
 2. Make sure postgresql and redis are up & running  
 3. Set the dB username and password in the environment
 4. Now run HotelsApplication.java
-5. Once the app is up & running, 
+5. Once the app is up & running, user can trigger APIs from swagger via http://localhost:8080/swagger-ui/index.html
 <br/>
     a. trigger ingestHotelData API to load the data into dB. This would parse, merge the data and store it into dB
    <br/>

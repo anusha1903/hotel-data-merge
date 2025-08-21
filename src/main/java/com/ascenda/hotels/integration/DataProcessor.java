@@ -13,9 +13,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * For a specific hotel id, get source jsonDataNode. If the node returns non-null value for a field, and if response attribute is not set for that attribute,
+ * validate & clean the data and set it to the object
+ * validating: check if the value is null/empty/blank before assigning
+ * cleaniong strategies: trim the spaces
+ * If the response attribute already has the data, merge the data using merging strategies
+ * Merging strategies:
+ * id & destinationId -> Assuming these values would be same for all the hotels fetched from different resources, the non-null data is mapped only when
+ *          respective object attributes are null. same for latitude. longitude
+ *  For the name, address, the data which has maximum length is considered
+ *  For description, the score is calculated for each description fetched from different sources. Based on the score, the description is opted
+ *  For Amenities, Images, the data is fetched for each sourceNode and merged into new one so that all the data is cleaned, normalized & merged with no duplicates and assign this object
+ *          to response attribute.
+ *          Cleaning strategy: Removed if there are any duplicates.
+ *          Normalized: Normalized the data when there is data repeated with space eg. business centre and businesscentre
+ */
 @Component
 public class DataProcessor {
 
+    /**
+     * For a specific hotel id, get acme jsonDataNode. If the node returns non-null value for a field, and if response attribute is not set for that attribute,
+     * validate & clean the data and set it to response object using cleaning strategies
+     * If the response attribute already has the data, merge the data using merging strategies
+     * @param acmeNode
+     * @param responseItem
+     * @return
+     */
     public ResponseItem processAcmeData(JsonNode acmeNode, ResponseItem responseItem){
         responseItem.setId(acmeNode.get("Id").asText().trim());
         int destId = acmeNode.get("DestinationId").asInt();

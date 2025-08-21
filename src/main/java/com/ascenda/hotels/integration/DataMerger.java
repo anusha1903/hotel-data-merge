@@ -19,9 +19,13 @@ public class DataMerger {
     }
 
     /**
-     * For each hotel data from all the sources, create responseItem
+     * For each hotel data from all the sources, create responseItem (Merged hotel data for each hotel_id)
      * before assigning to responseItem attribute, clean the data. So that while merging, only cleaned data is compared
-     * cleaning data :
+     * Algorithm:
+     * 1. For each hotel_id, create a final response item.
+     * 2. Now read each hotelDataNode of a source sequentially. If the data exists for a specific source, and not there in the object, map it with response item
+     * 3. If the data is already mapped to a specific attribute from previous source, now merge the data for that attribute
+     *      by applying various cleaning and merging strategies
      * @param eachHotelDataFromAllSources
      * @return
      */
@@ -69,7 +73,7 @@ public class DataMerger {
             }
         }
 
-        //System.out.println("responseItem for hotelId : " + responseItem);
+        //logger.info("responseItem for hotelId : " + responseItem);
 
         return  responseItem;
     }
